@@ -23,15 +23,20 @@ jobs:
       - name: Compile
         run: |
           mkdir -p bin/
+
           deno compile --output bin/cli-gpt.x86_64-unknown-linux-gnu --target x86_64-unknown-linux-gnu --allow-net --allow-read --allow-env --unstable src/index.ts
-          zip bin/cli-gpt.x86_64-unknown-linux-gnu.zip bin/cli-gpt.x86_64-unknown-linux-gnu
-          rm bin/cli-gpt.x86_64-unknown-linux-gnu
           deno compile --output bin/cli-gpt.x86_64-apple-darwin --target x86_64-apple-darwin --allow-net --allow-read --allow-env --unstable src/index.ts
-          zip bin/cli-gpt.x86_64-apple-darwin.zip bin/cli-gpt.x86_64-apple-darwin
-          rm bin/cli-gpt.x86_64-apple-darwin
           deno compile --output bin/cli-gpt.aarch64-apple-darwin --target aarch64-apple-darwin --allow-net --allow-read --allow-env --unstable src/index.ts
-          zip bin/cli-gpt.aarch64-apple-darwin.zip bin/cli-gpt.aarch64-apple-darwin
-          rm bin/cli-gpt.aarch64-apple-darwin
+
+          cd bin
+
+          zip cli-gpt.x86_64-unknown-linux-gnu.zip cli-gpt.x86_64-unknown-linux-gnu
+          zip cli-gpt.x86_64-apple-darwin.zip cli-gpt.x86_64-apple-darwin
+          zip cli-gpt.aarch64-apple-darwin.zip cli-gpt.aarch64-apple-darwin
+
+          rm cli-gpt.x86_64-unknown-linux-gnu
+          rm cli-gpt.x86_64-apple-darwin
+          rm cli-gpt.aarch64-apple-darwin
 
       - name: Get release
         id: get_release
