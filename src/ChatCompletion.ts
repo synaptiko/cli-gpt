@@ -7,7 +7,7 @@ export class ChatCompletion {
     this.model = model;
   }
 
-  async* complete(content: string): AsyncGenerator<string> {
+  async *complete(content: string): AsyncGenerator<string> {
     const { model, openaiKey } = this;
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

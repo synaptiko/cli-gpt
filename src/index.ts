@@ -76,7 +76,7 @@ try {
     write(chunk);
   }
   write('\n');
-} catch(error) {
+} catch (error) {
   console.error('Error:', error.message);
   Deno.exit(1);
 }
