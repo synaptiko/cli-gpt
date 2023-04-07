@@ -1,0 +1,17 @@
+{
+  "imports": {
+    "std/": "https://deno.land/std@0.182.0/"
+  },
+  "tasks": {
+    "run": "deno run --allow-net --allow-read --allow-env --unstable index.ts",
+    "compile": "deno compile --allow-net --allow-read --allow-env --unstable index.ts"
+  },
+  "fmt": {
+    "options": {
+      "useTabs": false,
+      "lineWidth": 120,
+      "indentWidth": 2,
+      "singleQuote": true
+    }
+  }
+}
