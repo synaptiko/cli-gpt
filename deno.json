@@ -3,8 +3,7 @@
     "std/": "https://deno.land/std@0.182.0/"
   },
   "tasks": {
-    "run": "deno run --allow-net --allow-read --allow-env --unstable src/index.ts",
-    "compile": "deno compile --allow-net --allow-read --allow-env --unstable src/index.ts"
+    "run": "deno run --allow-net --allow-read --allow-env --unstable src/index.ts"
   },
   "fmt": {
     "files": {

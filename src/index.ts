@@ -16,6 +16,7 @@ if (env.OPENAI_KEY === undefined) {
 // TODO: add ability to reset the conversation
 // TODO: add ability to set the role for a message
 // TODO: add ability to have initial system message + example conversation which is out of the persisted conversation
+// TODO: add ability to read file(s) by specifying them as command line arguments
 // TODO: add ability to set the other model params with env vars
 
 const response = await fetch('https://api.openai.com/v1/chat/completions', {
