@@ -38,7 +38,7 @@ jobs:
           rm cli-gpt.x86_64-apple-darwin
           rm cli-gpt.aarch64-apple-darwin
 
-      - name: Upload artifacts
+      - name: Release and upload artifacts
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
