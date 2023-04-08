@@ -8,7 +8,7 @@
   },
   "fmt": {
     "files": {
-      "include": ["src/", "deno.json"]
+      "include": ["src/", "deno.json", "bundle.ts"]
     },
     "options": {
       "useTabs": false,

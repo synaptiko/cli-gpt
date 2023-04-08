@@ -6,9 +6,8 @@ import { ChatCompletion } from './ChatCompletion.ts';
 import { printHelp } from './printHelp.ts';
 import { ConversationPersistance, Role } from './ConversationPersistance.ts';
 
-// TODO: reimplement how app is distributed until is resolved https://github.com/denoland/deno/issues/16632 (note: we can't use deno compile, instead we need to use some bundler and add shebang to that script)
-// TODO: add ability to set the other model params with env vars
 // TODO: finish the README
+// TODO: add ability to set the other model params with env vars
 
 const env = await load({
   envPath: join(Deno.env.get('HOME')!, '.cli-gpt'),

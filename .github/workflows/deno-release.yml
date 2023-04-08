@@ -22,21 +22,11 @@ jobs:
 
       - name: Compile
         run: |
-          mkdir -p bin/
-
-          deno compile --output bin/cli-gpt.x86_64-unknown-linux-gnu --target x86_64-unknown-linux-gnu --allow-net --allow-read --allow-env --allow-write --allow-run --unstable src/index.ts
-          deno compile --output bin/cli-gpt.x86_64-apple-darwin --target x86_64-apple-darwin --allow-net --allow-read --allow-env --allow-write --allow-run --unstable src/index.ts
-          deno compile --output bin/cli-gpt.aarch64-apple-darwin --target aarch64-apple-darwin --allow-net --allow-read --allow-env --allow-write --allow-run --unstable src/index.ts
-
-          cd bin
-
-          zip cli-gpt.x86_64-unknown-linux-gnu.zip cli-gpt.x86_64-unknown-linux-gnu
-          zip cli-gpt.x86_64-apple-darwin.zip cli-gpt.x86_64-apple-darwin
-          zip cli-gpt.aarch64-apple-darwin.zip cli-gpt.aarch64-apple-darwin
-
-          rm cli-gpt.x86_64-unknown-linux-gnu
-          rm cli-gpt.x86_64-apple-darwin
-          rm cli-gpt.aarch64-apple-darwin
+          deno run -A bundle.ts
+          cd out
+          chmod u+x cli-gpt
+          zip cli-gpt.zip cli-gpt
+          rm cli-gpt
 
       - name: Release and upload artifacts
         uses: softprops/action-gh-release@v1
@@ -44,6 +34,4 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           files: |
-            bin/cli-gpt.x86_64-unknown-linux-gnu.zip
-            bin/cli-gpt.x86_64-apple-darwin.zip
-            bin/cli-gpt.aarch64-apple-darwin.zip
+            out/cli-gpt.zip
