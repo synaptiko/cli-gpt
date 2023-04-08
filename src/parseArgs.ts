@@ -19,8 +19,8 @@ export type Flags = {
 export function parseArgs(): Params {
   const args = [...Deno.args];
   let argsRead = false;
-  const params: Params = {
-    role: 'user' as Role,
+  let role: Role | undefined;
+  const params: Omit<Params, 'role'> = {
     readFiles: undefined,
     prompt: undefined,
     flags: {
@@ -34,22 +34,33 @@ export function parseArgs(): Params {
   };
 
   while (!argsRead) {
-    // TODO: add validations
     switch (args[0]) {
       case '--user':
       case '-u':
+        if (role !== undefined) {
+          console.error('Error: Only one role can be specified.');
+          Deno.exit(1);
+        }
         args.shift();
-        params.role = 'user';
+        role = 'user';
         break;
       case '--assistant':
       case '-a':
+        if (role !== undefined) {
+          console.error('Error: Only one role can be specified.');
+          Deno.exit(1);
+        }
         args.shift();
-        params.role = 'assistant';
+        role = 'assistant';
         break;
       case '--system':
       case '-s':
+        if (role !== undefined) {
+          console.error('Error: Only one role can be specified.');
+          Deno.exit(1);
+        }
         args.shift();
-        params.role = 'system';
+        role = 'system';
         break;
       case '--multiline':
       case '-m':
@@ -79,11 +90,19 @@ export function parseArgs(): Params {
         break;
       case '--reset':
       case '-e':
+        if (Deno.args.length !== 1) {
+          console.error('Error: --reset can only be standalone.');
+          Deno.exit(1);
+        }
         params.flags.reset = true;
         argsRead = true;
         break;
       case '--help':
       case '-h':
+        if (Deno.args.length !== 1) {
+          console.error('Error: --reset can only be standalone.');
+          Deno.exit(1);
+        }
         params.flags.help = true;
         argsRead = true;
         break;
@@ -98,5 +117,44 @@ export function parseArgs(): Params {
     params.prompt = args.join(' ');
   }
 
-  return params;
+  const result = { ...params, role: role ?? 'user' };
+
+  validateParams(result);
+
+  return result;
+}
+
+function validateParams(params: Params): void {
+  if ((params.flags.multiline || params.readFiles) && params.prompt !== undefined) {
+    console.error('Error: When using --multiline or --read, the prompt must be provided through stdin.');
+    Deno.exit(1);
+  }
+
+  if (params.flags.affectInitialMessages && params.flags.oneShot) {
+    console.error('Error: --initial and --one-shot cannot be used together.');
+    Deno.exit(1);
+  }
+
+  if (params.role !== 'user' && params.flags.copyResponse) {
+    console.error('Error: --copy can only be used with --user.');
+    Deno.exit(1);
+  }
+
+  validateFilePaths(params.readFiles);
+}
+
+function validateFilePaths(filePaths: string[] = []): void {
+  filePaths.forEach((file) => {
+    try {
+      Deno.statSync(file);
+    } catch (error) {
+      if (error instanceof Deno.errors.NotFound) {
+        console.error(`Error: File not found: ${file}`);
+        Deno.exit(1);
+      } else {
+        console.error(`Error: Unable to read file: ${file}`);
+        Deno.exit(1);
+      }
+    }
+  });
 }
