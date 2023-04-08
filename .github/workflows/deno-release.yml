@@ -24,9 +24,9 @@ jobs:
         run: |
           mkdir -p bin/
 
-          deno compile --output bin/cli-gpt.x86_64-unknown-linux-gnu --target x86_64-unknown-linux-gnu --allow-net --allow-read --allow-env --unstable src/index.ts
-          deno compile --output bin/cli-gpt.x86_64-apple-darwin --target x86_64-apple-darwin --allow-net --allow-read --allow-env --unstable src/index.ts
-          deno compile --output bin/cli-gpt.aarch64-apple-darwin --target aarch64-apple-darwin --allow-net --allow-read --allow-env --unstable src/index.ts
+          deno compile --output bin/cli-gpt.x86_64-unknown-linux-gnu --target x86_64-unknown-linux-gnu --allow-net --allow-read --allow-env --allow-write --allow-run --unstable src/index.ts
+          deno compile --output bin/cli-gpt.x86_64-apple-darwin --target x86_64-apple-darwin --allow-net --allow-read --allow-env --allow-write --allow-run --unstable src/index.ts
+          deno compile --output bin/cli-gpt.aarch64-apple-darwin --target aarch64-apple-darwin --allow-net --allow-read --allow-env --allow-write --allow-run --unstable src/index.ts
 
           cd bin
 

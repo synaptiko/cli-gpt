@@ -1,9 +1,10 @@
 {
   "imports": {
-    "std/": "https://deno.land/std@0.182.0/"
+    "std/": "https://deno.land/std@0.182.0/",
+    "copy_paste/": "https://deno.land/x/copy_paste@v1.1.3/"
   },
   "tasks": {
-    "run": "deno run --allow-net --allow-read --allow-env --unstable src/index.ts"
+    "run": "deno run --allow-net --allow-read --allow-env --allow-write --allow-run --unstable src/index.ts"
   },
   "fmt": {
     "files": {

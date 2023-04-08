@@ -1,23 +1,42 @@
-export class ChatCompletion {
-  private openaiKey: string;
-  private model: string;
+import { Message } from './ConversationPersistance.ts';
 
-  constructor(openaiKey: string, model: string = 'gpt-4') {
-    this.openaiKey = openaiKey;
+function normalizeMessages(messages: Message[]): Message[] {
+  return messages.reduce<Message[]>((result, message) => {
+    if (result[result.length - 1]?.role === message.role) {
+      result[result.length - 1].content += `\n\n${message.content}`;
+    } else {
+      result.push({ ...message });
+    }
+
+    return result;
+  }, []);
+}
+
+export class ChatCompletion {
+  private openaiApiKey: string;
+  private model: string;
+  private messages: Message[] = [];
+
+  constructor(openaiApiKey: string, model: string = 'gpt-4') {
+    this.openaiApiKey = openaiApiKey;
     this.model = model;
   }
 
-  async *complete(content: string): AsyncGenerator<string> {
-    const { model, openaiKey } = this;
+  setMessages(messages: Message[]) {
+    this.messages = messages;
+  }
+
+  async *complete(): AsyncGenerator<string> {
+    const { model, openaiApiKey } = this;
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openaiKey}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
       },
       body: JSON.stringify({
         model,
-        messages: [{ role: 'user', content }],
+        messages: normalizeMessages(this.messages),
         stream: true,
       }),
     });

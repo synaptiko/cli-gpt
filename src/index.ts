@@ -1,82 +1,163 @@
 import { load } from 'std/dotenv/mod.ts';
 import { join } from 'std/path/mod.ts';
+import { writeText as copyToClipboard } from 'copy_paste/mod.ts';
 import { prompt } from './prompt.ts';
 import { ChatCompletion } from './ChatCompletion.ts';
+import { printHelp } from './printHelp.ts';
+import { ConversationPersistance, Role } from './ConversationPersistance.ts';
 
-// TODO: add ability to keep the conversation persistent in a file
-// TODO: add ability to reset the conversation
-// TODO: add ability to set the role for a message
-// TODO: add ability to have initial system message + example conversation which is out of the persisted conversation
-// TODO: add ability to read file(s) by specifying them as command line arguments
+// TODO: reimplement how app is distributed until is resolved https://github.com/denoland/deno/issues/16632 (note: we can't use deno compile, instead we need to use some bundler and add shebang to that script)
 // TODO: add ability to set the other model params with env vars
+// TODO: finish the README
 
 const env = await load({
   envPath: join(Deno.env.get('HOME')!, '.cli-gpt'),
 });
 
-if (env.OPENAI_KEY === undefined) {
-  console.error('OPENAI_KEY environment variable is not set');
+if (env.OPENAI_API_KEY === undefined) {
+  console.error('OPENAI_API_KEY environment variable is not set');
   Deno.exit(1);
 }
 
 const args = [...Deno.args];
+let argsRead = false;
+let role: Role = 'user';
+let multiline = false;
+let readFiles;
+let affectInitialMessages = false;
+let oneShot = false;
+let copyResponse = false;
+let reset = false;
+let help = false;
 
-// TODO: iterate over args and check for command line flags
-switch (args[0]) {
-  case '--user':
-  case '-u':
-    args.shift();
-    // TODO
-    break;
-  case '--multiline':
-  case '-m':
-    args.shift();
-    // TODO
-    break;
-  case '--assistent':
-  case '-a':
-    args.shift();
-    // TODO
-    break;
-  case '--system':
-  case '-s':
-    args.shift();
-    // TODO
-    break;
-  case '--read':
-  case '-r':
-    args.shift();
-    // TODO
-    break;
-  case '--reset':
-  // deno-lint-ignore no-fallthrough
-  case '-e':
-    args.shift();
-    // TODO
-    Deno.exit(0);
-  case '--help':
-  case '-h':
-    // TODO
-    Deno.exit(0);
-}
-
-let content = args.join(' ');
-
-if (args.length === 0) {
-  // TODO: allow multiline prompt with command line flag
-  content = await prompt();
-}
-
-const chatCompletion = new ChatCompletion(env.OPENAI_KEY, env.MODEL);
-const encoder = new TextEncoder();
-const write = (chunk: string) => Deno.stdout.write(encoder.encode(chunk));
-
-try {
-  for await (const chunk of chatCompletion.complete(content)) {
-    write(chunk);
+while (!argsRead) {
+  // TODO: add validations
+  switch (args[0]) {
+    case '--user':
+    case '-u':
+      args.shift();
+      role = 'user';
+      break;
+    case '--assistent':
+    case '-a':
+      args.shift();
+      role = 'assistent';
+      break;
+    case '--system':
+    case '-s':
+      args.shift();
+      role = 'system';
+      break;
+    case '--multiline':
+    case '-m':
+      args.shift();
+      multiline = true;
+      break;
+    case '--read':
+    case '-r':
+      args.shift();
+      readFiles = [...args];
+      args.splice(0, args.length);
+      break;
+    case '--initial':
+    case '-i':
+      args.shift();
+      affectInitialMessages = true;
+      break;
+    case '--one-shot':
+    case '-o':
+      args.shift();
+      oneShot = true;
+      break;
+    case '--copy':
+    case '-c':
+      args.shift();
+      copyResponse = true;
+      break;
+    case '--reset':
+    case '-e':
+      reset = true;
+      argsRead = true;
+      break;
+    case '--help':
+    case '-h':
+      help = true;
+      argsRead = true;
+      break;
   }
-  write('\n');
-} catch (error) {
-  console.error('Error:', error.message);
-  Deno.exit(1);
+
+  if (!argsRead) {
+    argsRead = args.length === 0 || !args[0].startsWith('-');
+  }
+}
+
+const conversationPersistance = new ConversationPersistance();
+
+if (help) {
+  printHelp();
+} else if (reset) {
+  conversationPersistance.reset(affectInitialMessages);
+} else {
+  let content;
+
+  if (readFiles !== undefined) {
+    const filesContent = await Promise.all(readFiles.map(async (file) => {
+      const fileContent = await Deno.readTextFile(file);
+      return `${file}:\n\`\`\`\n${fileContent}\n\`\`\`\n`;
+    }));
+
+    content = filesContent.join('\n');
+    console.log(content);
+  }
+
+  if (multiline || args.length === 0) {
+    content = (content ?? '') + await prompt(multiline);
+    console.log('\nResponse:');
+  } else {
+    content = args.join(' ');
+  }
+
+  if (!oneShot) {
+    conversationPersistance.append({
+      role,
+      content,
+      affectInitialMessages,
+    });
+  }
+
+  if (role === 'user') {
+    const chatCompletion = new ChatCompletion(env.OPENAI_API_KEY, env.MODEL);
+    const encoder = new TextEncoder();
+    const write = (chunk: string) => Deno.stdout.write(encoder.encode(chunk));
+    const responseContent = [];
+
+    if (oneShot) {
+      chatCompletion.setMessages([{ role: 'user', content }]);
+    } else {
+      chatCompletion.setMessages(conversationPersistance.getMessages());
+    }
+
+    try {
+      for await (const chunk of chatCompletion.complete()) {
+        responseContent.push(chunk);
+        write(chunk);
+      }
+      write('\n');
+
+      if (copyResponse) {
+        copyToClipboard(responseContent.join(''));
+      }
+
+      if (!oneShot) {
+        conversationPersistance.append({
+          role: 'assistent',
+          content: responseContent.join(''),
+          affectInitialMessages,
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error.message);
+      Deno.exit(1);
+    }
+  }
 }
