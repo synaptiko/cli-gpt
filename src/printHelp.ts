@@ -15,7 +15,7 @@ Usage: ${binName} [options] [prompt]
 
 Options:
   --user, -u              Set the role for the message as 'user'.
-  --assistent, -a         Set the role for the message as 'assistent'.
+  --assistant, -a         Set the role for the message as 'assistant'.
   --system, -s            Set the role for the message as 'system'.
   --multiline, -m         Enable multiline input.
   --read, -r [file(s)]    Read file(s) and use their content in the prompt.
@@ -28,7 +28,7 @@ Options:
 Input:
   prompt                  Text content to send to the API (in case or 'user' role)
                           or to add to the conversation
-                          (in case of 'assistent' or 'system' roles).
+                          (in case of 'assistant' or 'system' roles).
                           Tip: Wrap the prompt in quotes to avoid shell expansion.
 
 When no prompt is provided, the user will be prompted to enter it over standard input.

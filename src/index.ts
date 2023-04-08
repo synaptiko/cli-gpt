@@ -4,7 +4,8 @@ import { writeText as copyToClipboard } from 'copy_paste/mod.ts';
 import { prompt } from './prompt.ts';
 import { ChatCompletion } from './ChatCompletion.ts';
 import { printHelp } from './printHelp.ts';
-import { ConversationPersistance, Role } from './ConversationPersistance.ts';
+import { ConversationPersistance } from './ConversationPersistance.ts';
+import { parseArgs } from './parseArgs.ts';
 
 // TODO: finish the README
 // TODO: add ability to set the other model params with env vars
@@ -18,84 +19,14 @@ if (env.OPENAI_API_KEY === undefined) {
   Deno.exit(1);
 }
 
-const args = [...Deno.args];
-let argsRead = false;
-let role: Role = 'user';
-let multiline = false;
-let readFiles;
-let affectInitialMessages = false;
-let oneShot = false;
-let copyResponse = false;
-let reset = false;
-let help = false;
-
-while (!argsRead) {
-  // TODO: add validations
-  switch (args[0]) {
-    case '--user':
-    case '-u':
-      args.shift();
-      role = 'user';
-      break;
-    case '--assistent':
-    case '-a':
-      args.shift();
-      role = 'assistent';
-      break;
-    case '--system':
-    case '-s':
-      args.shift();
-      role = 'system';
-      break;
-    case '--multiline':
-    case '-m':
-      args.shift();
-      multiline = true;
-      break;
-    case '--read':
-    case '-r':
-      args.shift();
-      readFiles = [...args];
-      args.splice(0, args.length);
-      break;
-    case '--initial':
-    case '-i':
-      args.shift();
-      affectInitialMessages = true;
-      break;
-    case '--one-shot':
-    case '-o':
-      args.shift();
-      oneShot = true;
-      break;
-    case '--copy':
-    case '-c':
-      args.shift();
-      copyResponse = true;
-      break;
-    case '--reset':
-    case '-e':
-      reset = true;
-      argsRead = true;
-      break;
-    case '--help':
-    case '-h':
-      help = true;
-      argsRead = true;
-      break;
-  }
-
-  if (!argsRead) {
-    argsRead = args.length === 0 || !args[0].startsWith('-');
-  }
-}
-
 const conversationPersistance = new ConversationPersistance();
+const { flags, role, readFiles, prompt: promptFromArgs } = parseArgs();
+const { affectInitialMessages } = flags;
 
-if (help) {
+if (flags.help) {
   printHelp();
-} else if (reset) {
-  conversationPersistance.reset(affectInitialMessages);
+} else if (flags.reset) {
+  conversationPersistance.reset(flags.affectInitialMessages);
 } else {
   let content;
 
@@ -109,14 +40,14 @@ if (help) {
     console.log(content);
   }
 
-  if (multiline || args.length === 0) {
-    content = (content ?? '') + await prompt(multiline);
+  if (flags.multiline || promptFromArgs === undefined) {
+    content = (content ?? '') + await prompt(flags.multiline);
     console.log('\nResponse:');
   } else {
-    content = args.join(' ');
+    content = promptFromArgs;
   }
 
-  if (!oneShot) {
+  if (!flags.oneShot) {
     conversationPersistance.append({
       role,
       content,
@@ -130,7 +61,7 @@ if (help) {
     const write = (chunk: string) => Deno.stdout.write(encoder.encode(chunk));
     const responseContent = [];
 
-    if (oneShot) {
+    if (flags.oneShot) {
       chatCompletion.setMessages([{ role: 'user', content }]);
     } else {
       chatCompletion.setMessages(conversationPersistance.getMessages());
@@ -143,13 +74,13 @@ if (help) {
       }
       write('\n');
 
-      if (copyResponse) {
+      if (flags.copyResponse) {
         copyToClipboard(responseContent.join(''));
       }
 
-      if (!oneShot) {
+      if (!flags.oneShot) {
         conversationPersistance.append({
-          role: 'assistent',
+          role: 'assistant',
           content: responseContent.join(''),
           affectInitialMessages,
         });

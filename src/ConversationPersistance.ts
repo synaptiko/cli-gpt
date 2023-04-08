@@ -1,7 +1,7 @@
 const initialMessagesPath = '.cli-gpt.initial.md';
 const conversationPath = '.cli-gpt.conversation.md';
 
-export type Role = 'user' | 'assistent' | 'system';
+export type Role = 'user' | 'assistant' | 'system';
 export type Message = { role: Role; content: string };
 
 function readFile(path: string): string | undefined {
@@ -25,8 +25,8 @@ function parseMessages(fileContent = ''): Message[] {
         case '# system:':
           newRole = 'system';
           break;
-        case '# assistent:':
-          newRole = 'assistent';
+        case '# assistant:':
+          newRole = 'assistant';
           break;
         case '# user:':
           newRole = 'user';
