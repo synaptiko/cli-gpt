@@ -1,23 +1,12 @@
-import { load } from 'std/dotenv/mod.ts';
-import { join } from 'std/path/mod.ts';
 import { writeText as copyToClipboard } from 'copy_paste/mod.ts';
 import { prompt } from './prompt.ts';
 import { ChatCompletion } from './ChatCompletion.ts';
 import { printHelp } from './printHelp.ts';
 import { ConversationPersistance } from './ConversationPersistance.ts';
 import { parseArgs } from './parseArgs.ts';
+import { loadConfig } from './loadConfig.ts';
 
-// TODO: add ability to set the other model params with env vars
-
-const env = await load({
-  envPath: join(Deno.env.get('HOME')!, '.cli-gpt'),
-});
-
-if (env.OPENAI_API_KEY === undefined) {
-  console.error('OPENAI_API_KEY environment variable is not set');
-  Deno.exit(1);
-}
-
+const config = await loadConfig();
 const conversationPersistance = new ConversationPersistance();
 const { flags, role, readFiles, prompt: promptFromArgs } = parseArgs();
 const { affectInitialMessages } = flags;
@@ -55,7 +44,7 @@ if (flags.help) {
   }
 
   if (role === 'user') {
-    const chatCompletion = new ChatCompletion(env.OPENAI_API_KEY, env.MODEL);
+    const chatCompletion = new ChatCompletion(config);
     const encoder = new TextEncoder();
     const write = (chunk: string) => Deno.stdout.write(encoder.encode(chunk));
     const responseContent = [];

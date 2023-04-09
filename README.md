@@ -30,12 +30,14 @@ Explore more options by using `cli-gpt --help`.
    # or (if you have ~/.local/bin created and added to your PATH)
    mv cli-gpt ~/.local/bin
    ```
-5. Configure `cli-gpt` by creating a `~/.cli-gpt` file:
+5. Configure `cli-gpt` by creating a `~/.cli-gpt` file with your desired parameters:
    ```
    OPENAI_API_KEY=<Your API Key>
    MODEL=gpt-4
    ```
    Replace `<Your API Key>` with your API key, and `gpt-4` with `gpt-3.5-turbo` if you don't have access to GPT-4 yet.
+
+   You can also provide additional parameters in the `~/.cli-gpt` file, such as `TEMPERATURE`, `TOP_P`, `N`, `MAX_TOKENS`, `PRESENCE_PENALTY`, `FREQUENCY_PENALTY`, `STOP`, and `LOGIT_BIAS`. To learn more about these parameters, refer to the [OpenAI API documentation](https://platform.openai.com/docs/api-reference/chat/create).
 
 ### Tips
 

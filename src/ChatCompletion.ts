@@ -1,4 +1,5 @@
 import { Message } from './ConversationPersistance.ts';
+import { Config } from './loadConfig.ts';
 
 function normalizeMessages(messages: Message[]): Message[] {
   return messages.reduce<Message[]>((result, message) => {
@@ -13,13 +14,11 @@ function normalizeMessages(messages: Message[]): Message[] {
 }
 
 export class ChatCompletion {
-  private openaiApiKey: string;
-  private model: string;
+  private config: Config;
   private messages: Message[] = [];
 
-  constructor(openaiApiKey: string, model: string = 'gpt-4') {
-    this.openaiApiKey = openaiApiKey;
-    this.model = model;
+  constructor(config: Config) {
+    this.config = config;
   }
 
   setMessages(messages: Message[]) {
@@ -27,15 +26,15 @@ export class ChatCompletion {
   }
 
   async *complete(): AsyncGenerator<string> {
-    const { model, openaiApiKey } = this;
+    const { config: { api_key, ...config } } = this;
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openaiApiKey}`,
+        'Authorization': `Bearer ${api_key}`,
       },
       body: JSON.stringify({
-        model,
+        ...config,
         messages: normalizeMessages(this.messages),
         stream: true,
       }),
