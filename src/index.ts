@@ -1,3 +1,8 @@
+/*!
+ * cli-gpt
+ * Copyright (c) 2023 Jiří Prokop | synaptiko.cz
+ * Licensed under the MIT License (https://opensource.org/licenses/MIT)
+ */
 import { writeText as copyToClipboard } from 'copy_paste/mod.ts';
 import { prompt } from './prompt.ts';
 import { ChatCompletion } from './ChatCompletion.ts';
