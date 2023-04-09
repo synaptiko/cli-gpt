@@ -1,6 +1,5 @@
 # cli-gpt [![Deno checks](https://github.com/synaptiko/cli-gpt/actions/workflows/deno-checks.yml/badge.svg)](https://github.com/synaptiko/cli-gpt/actions/workflows/deno-checks.yml) [![Latest GitHub release](https://img.shields.io/github/v/release/synaptiko/cli-gpt?display_name=release)](https://github.com/synaptiko/cli-gpt/releases)
 
-
 `cli-gpt` is a Command Line Interface (CLI) tool for interacting with OpenAI's Chat Completion API. You can communicate with an AI chatbot and easily manage user, assistant, and system roles in your conversation. The main features of this tool include the ability to persist chat conversations per folder, allowing you to have specific conversations in your home folder and per project. Additionally, you can include any local text files in the conversation and work with various system messages to guide the chatbot's behavior.
 
 ## Key Features
