@@ -52,8 +52,7 @@ export async function loadConfig(): Promise<Config> {
     model: env.MODEL ?? 'gpt-4',
     temperature: validateParam<number>(
       'temperature',
-      () =>
-        env.TEMPERATURE !== undefined ? parseFloat(env.TEMPERATURE) : undefined,
+      () => env.TEMPERATURE !== undefined ? parseFloat(env.TEMPERATURE) : undefined,
       (value) => value >= 0 && value <= 2,
     ),
     top_p: validateParam<number>(
@@ -73,18 +72,12 @@ export async function loadConfig(): Promise<Config> {
     ),
     presence_penalty: validateParam<number>(
       'presence_penalty',
-      () =>
-        env.PRESENCE_PENALTY !== undefined
-          ? parseFloat(env.PRESENCE_PENALTY)
-          : undefined,
+      () => env.PRESENCE_PENALTY !== undefined ? parseFloat(env.PRESENCE_PENALTY) : undefined,
       (value) => value >= -2 && value <= 2,
     ),
     frequency_penalty: validateParam<number>(
       'frequency_penalty',
-      () =>
-        env.FREQUENCY_PENALTY !== undefined
-          ? parseFloat(env.FREQUENCY_PENALTY)
-          : undefined,
+      () => env.FREQUENCY_PENALTY !== undefined ? parseFloat(env.FREQUENCY_PENALTY) : undefined,
       (value) => value >= -2 && value <= 2,
     ),
     stop: validateParam<string | string[]>(
@@ -104,5 +97,5 @@ export async function loadConfig(): Promise<Config> {
         return true;
       },
     ),
-  }
+  };
 }
