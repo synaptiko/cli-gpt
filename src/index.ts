@@ -7,7 +7,6 @@ import { printHelp } from './printHelp.ts';
 import { ConversationPersistance } from './ConversationPersistance.ts';
 import { parseArgs } from './parseArgs.ts';
 
-// TODO: finish the README
 // TODO: add ability to set the other model params with env vars
 
 const env = await load({

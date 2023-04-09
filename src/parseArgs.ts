@@ -29,8 +29,8 @@ export function parseArgs(): Params {
       oneShot: false,
       copyResponse: false,
       reset: false,
-      help: false
-    }
+      help: false,
+    },
   };
 
   while (!argsRead) {
@@ -89,18 +89,29 @@ export function parseArgs(): Params {
         params.flags.copyResponse = true;
         break;
       case '--reset':
-      case '-e':
-        if (Deno.args.length !== 1) {
-          console.error('Error: --reset can only be standalone.');
+      case '-e': {
+        const nextArg = args[1];
+
+        args.shift();
+
+        if (nextArg === '--initial' || nextArg === '-i') {
+          args.shift();
+          params.flags.affectInitialMessages = true;
+        }
+
+        if (args.length !== 0) {
+          console.error('Error: --reset can only be standalone or together with --initial.');
           Deno.exit(1);
         }
+
         params.flags.reset = true;
         argsRead = true;
         break;
+      }
       case '--help':
       case '-h':
         if (Deno.args.length !== 1) {
-          console.error('Error: --reset can only be standalone.');
+          console.error('Error: --help can only be standalone.');
           Deno.exit(1);
         }
         params.flags.help = true;

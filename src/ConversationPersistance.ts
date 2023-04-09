@@ -56,7 +56,10 @@ function parseMessages(fileContent = ''): Message[] {
 export class ConversationPersistance {
   reset(affectInitialMessages: boolean) {
     try {
-      Deno.removeSync(affectInitialMessages ? initialMessagesPath : conversationPath);
+      if (affectInitialMessages) {
+        Deno.removeSync(initialMessagesPath);
+      }
+      Deno.removeSync(conversationPath);
     } catch {
       // ignore
     }
