@@ -73,9 +73,9 @@ export class ConversationPersistance {
     );
   }
 
-  getMessages(): Message[] {
+  getMessages({ onlyInitial }: { onlyInitial?: boolean } = {}): Message[] {
     const initialMessages = readFile(initialMessagesPath);
-    const conversation = readFile(conversationPath);
+    const conversation = onlyInitial ? undefined : readFile(conversationPath);
 
     return [...parseMessages(initialMessages), ...parseMessages(conversation)];
   }

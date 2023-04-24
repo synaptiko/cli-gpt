@@ -21,6 +21,7 @@ Options:
   --read, -r [file(s)]    Read file(s) and use their content in the prompt.
   --initial, -i           Add to or reset the initial messages.
   --one-shot, -o          Prompt without persisted conversation, do not save the result.
+                          Uses initial messages if present.
   --copy, -c              Copy the response to the clipboard.
   --reset, -e             Reset the conversation.
   --help, -h              Display this help message and exit.

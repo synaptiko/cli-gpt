@@ -55,7 +55,7 @@ if (flags.help) {
     const responseContent = [];
 
     if (flags.oneShot) {
-      chatCompletion.setMessages([{ role: 'user', content }]);
+      chatCompletion.setMessages([...conversationPersistance.getMessages({ onlyInitial: true }), { role: 'user', content }]);
     } else {
       chatCompletion.setMessages(conversationPersistance.getMessages());
     }
