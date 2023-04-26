@@ -1,4 +1,4 @@
-import { Role } from './ConversationPersistance.ts';
+import { AssistantRole, Role, SystemRole, UserRole } from './ConversationPersistance.ts';
 
 export type Params = {
   flags: Flags;
@@ -42,7 +42,7 @@ export function parseArgs(): Params {
           Deno.exit(1);
         }
         args.shift();
-        role = 'user';
+        role = UserRole;
         break;
       case '--assistant':
       case '-a':
@@ -51,7 +51,7 @@ export function parseArgs(): Params {
           Deno.exit(1);
         }
         args.shift();
-        role = 'assistant';
+        role = AssistantRole;
         break;
       case '--system':
       case '-s':
@@ -60,7 +60,7 @@ export function parseArgs(): Params {
           Deno.exit(1);
         }
         args.shift();
-        role = 'system';
+        role = SystemRole;
         break;
       case '--multiline':
       case '-m':
@@ -128,7 +128,7 @@ export function parseArgs(): Params {
     params.prompt = args.join(' ');
   }
 
-  const result = { ...params, role: role ?? 'user' };
+  const result: Params = { ...params, role: role ?? UserRole };
 
   validateParams(result);
 
@@ -146,7 +146,7 @@ function validateParams(params: Params): void {
     Deno.exit(1);
   }
 
-  if (params.role !== 'user' && params.flags.copyResponse) {
+  if (params.role !== UserRole && params.flags.copyResponse) {
     console.error('Error: --copy can only be used with --user.');
     Deno.exit(1);
   }

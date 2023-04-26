@@ -1,8 +1,16 @@
 const initialMessagesPath = '.cli-gpt.initial.md';
 const conversationPath = '.cli-gpt.conversation.md';
 
-export type Role = 'user' | 'assistant' | 'system';
+export const UserRole = Symbol('user');
+export const AssistantRole = Symbol('assistant');
+export const SystemRole = Symbol('system');
+
+export type Role = typeof UserRole | typeof AssistantRole | typeof SystemRole;
 export type Message = { role: Role; content: string };
+
+function isRole(role: string | Role): role is Role {
+  return UserRole === role || AssistantRole === role || SystemRole === role;
+}
 
 function readFile(path: string): string | undefined {
   try {
@@ -23,13 +31,13 @@ function parseMessages(fileContent = ''): Message[] {
 
       switch (line) {
         case '# system:':
-          newRole = 'system';
+          newRole = SystemRole;
           break;
         case '# assistant:':
-          newRole = 'assistant';
+          newRole = AssistantRole;
           break;
         case '# user:':
-          newRole = 'user';
+          newRole = UserRole;
           break;
       }
 
@@ -66,11 +74,26 @@ export class ConversationPersistance {
   }
 
   append({ role, content, affectInitialMessages }: { role: Role; content: string; affectInitialMessages: boolean }) {
-    Deno.writeTextFileSync(
-      affectInitialMessages ? initialMessagesPath : conversationPath,
-      `# ${role}:\n${content}\n\n`,
-      { append: true },
-    );
+    this.appendPartial({ roleOrChunk: role, affectInitialMessages });
+    this.appendPartial({ roleOrChunk: `${content}\n\n`, affectInitialMessages });
+  }
+
+  appendPartial(
+    { roleOrChunk, affectInitialMessages }: { roleOrChunk: Role | string; affectInitialMessages: boolean },
+  ) {
+    if (isRole(roleOrChunk)) {
+      Deno.writeTextFileSync(
+        affectInitialMessages ? initialMessagesPath : conversationPath,
+        `# ${roleOrChunk.description}:\n`,
+        { append: true },
+      );
+    } else {
+      Deno.writeTextFileSync(
+        affectInitialMessages ? initialMessagesPath : conversationPath,
+        roleOrChunk,
+        { append: true },
+      );
+    }
   }
 
   getMessages({ onlyInitial }: { onlyInitial?: boolean } = {}): Message[] {

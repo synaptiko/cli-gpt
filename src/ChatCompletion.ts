@@ -1,12 +1,17 @@
 import { Message } from './ConversationPersistance.ts';
 import { Config } from './loadConfig.ts';
 
-function normalizeMessages(messages: Message[]): Message[] {
-  return messages.reduce<Message[]>((result, message) => {
-    if (result[result.length - 1]?.role === message.role) {
-      result[result.length - 1].content += `\n\n${message.content}`;
+type ChatMessage = {
+  role: 'user' | 'assistant' | 'system',
+  content: string,
+};
+
+function normalizeMessages(messages: Message[]): ChatMessage[] {
+  return messages.reduce<ChatMessage[]>((result, { role: { description: role }, content }) => {
+    if (result[result.length - 1]?.role === role) {
+      result[result.length - 1].content += `\n\n${content}`;
     } else {
-      result.push({ ...message });
+      result.push({ role: (role as ChatMessage['role']), content });
     }
 
     return result;

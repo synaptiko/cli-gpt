@@ -7,7 +7,7 @@ import { writeText as copyToClipboard } from 'copy_paste/mod.ts';
 import { prompt } from './prompt.ts';
 import { ChatCompletion } from './ChatCompletion.ts';
 import { printHelp } from './printHelp.ts';
-import { ConversationPersistance } from './ConversationPersistance.ts';
+import { AssistantRole, ConversationPersistance, UserRole } from './ConversationPersistance.ts';
 import { parseArgs } from './parseArgs.ts';
 import { loadConfig } from './loadConfig.ts';
 
@@ -48,7 +48,7 @@ if (flags.help) {
     });
   }
 
-  if (role === 'user') {
+  if (role === UserRole) {
     const chatCompletion = new ChatCompletion(config);
     const encoder = new TextEncoder();
     const write = (chunk: string) => Deno.stdout.write(encoder.encode(chunk));
@@ -56,7 +56,7 @@ if (flags.help) {
 
     if (flags.oneShot) {
       chatCompletion.setMessages([...conversationPersistance.getMessages({ onlyInitial: true }), {
-        role: 'user',
+        role: UserRole,
         content,
       }]);
     } else {
@@ -72,10 +72,17 @@ if (flags.help) {
         console.log('Aborted.');
       });
 
+      if (!flags.oneShot) {
+        conversationPersistance.appendPartial({ roleOrChunk: AssistantRole, affectInitialMessages });
+      }
+
       try {
         for await (const chunk of chatCompletion.complete(abortSignal)) {
           responseContent.push(chunk);
           write(chunk);
+          if (!flags.oneShot) {
+            conversationPersistance.appendPartial({ roleOrChunk: chunk, affectInitialMessages });
+          }
         }
       } catch (error) {
         if (error.message !== 'The signal has been aborted') {
@@ -89,11 +96,7 @@ if (flags.help) {
       }
 
       if (!flags.oneShot) {
-        conversationPersistance.append({
-          role: 'assistant',
-          content: responseContent.join(''),
-          affectInitialMessages,
-        });
+        conversationPersistance.appendPartial({ roleOrChunk: '\n\n', affectInitialMessages });
       }
     } catch (error) {
       console.error('Error:', error.message);
