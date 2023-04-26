@@ -14,12 +14,14 @@ import { loadConfig } from './loadConfig.ts';
 const config = await loadConfig();
 const conversationPersistance = new ConversationPersistance();
 const { flags, role, readFiles, prompt: promptFromArgs } = parseArgs();
-const { affectInitialMessages } = flags;
+const { affectInitialMessages, oneShot } = flags;
 
 if (flags.help) {
   printHelp();
 } else if (flags.reset) {
-  conversationPersistance.reset(flags.affectInitialMessages);
+  conversationPersistance.reset(
+    flags.affectInitialMessages ? ['initial', 'conversation', 'one-shot'] : ['conversation', 'one-shot'],
+  );
 } else {
   let content;
 
@@ -40,13 +42,11 @@ if (flags.help) {
     content = promptFromArgs;
   }
 
-  if (!flags.oneShot) {
-    conversationPersistance.append({
-      role,
-      content,
-      affectInitialMessages,
-    });
-  }
+  conversationPersistance.append({
+    role,
+    content,
+    destination: affectInitialMessages ? 'initial' : oneShot ? 'one-shot' : 'conversation',
+  });
 
   if (role === UserRole) {
     const chatCompletion = new ChatCompletion(config);
@@ -54,7 +54,7 @@ if (flags.help) {
     const write = (chunk: string) => Deno.stdout.write(encoder.encode(chunk));
     const responseContent = [];
 
-    if (flags.oneShot) {
+    if (oneShot) {
       chatCompletion.setMessages([...conversationPersistance.getMessages({ onlyInitial: true }), {
         role: UserRole,
         content,
@@ -72,17 +72,19 @@ if (flags.help) {
         console.log('Aborted.');
       });
 
-      if (!flags.oneShot) {
-        conversationPersistance.appendPartial({ roleOrChunk: AssistantRole, affectInitialMessages });
-      }
+      conversationPersistance.appendPartial({
+        roleOrChunk: AssistantRole,
+        destination: affectInitialMessages ? 'initial' : oneShot ? 'one-shot' : 'conversation',
+      });
 
       try {
         for await (const chunk of chatCompletion.complete(abortSignal)) {
           responseContent.push(chunk);
           write(chunk);
-          if (!flags.oneShot) {
-            conversationPersistance.appendPartial({ roleOrChunk: chunk, affectInitialMessages });
-          }
+          conversationPersistance.appendPartial({
+            roleOrChunk: chunk,
+            destination: affectInitialMessages ? 'initial' : oneShot ? 'one-shot' : 'conversation',
+          });
         }
       } catch (error) {
         if (error.message !== 'The signal has been aborted') {
@@ -95,9 +97,10 @@ if (flags.help) {
         copyToClipboard(responseContent.join(''));
       }
 
-      if (!flags.oneShot) {
-        conversationPersistance.appendPartial({ roleOrChunk: '\n\n', affectInitialMessages });
-      }
+      conversationPersistance.appendPartial({
+        roleOrChunk: '\n\n',
+        destination: affectInitialMessages ? 'initial' : oneShot ? 'one-shot' : 'conversation',
+      });
     } catch (error) {
       console.error('Error:', error.message);
       Deno.exit(1);

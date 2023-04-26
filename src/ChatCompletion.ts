@@ -2,8 +2,8 @@ import { Message } from './ConversationPersistance.ts';
 import { Config } from './loadConfig.ts';
 
 type ChatMessage = {
-  role: 'user' | 'assistant' | 'system',
-  content: string,
+  role: 'user' | 'assistant' | 'system';
+  content: string;
 };
 
 function normalizeMessages(messages: Message[]): ChatMessage[] {

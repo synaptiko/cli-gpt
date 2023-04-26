@@ -1,5 +1,8 @@
 const initialMessagesPath = '.cli-gpt.initial.md';
 const conversationPath = '.cli-gpt.conversation.md';
+const oneShotConversationPath = '.cli-gpt.conversation.one-shot.md';
+
+export type Destination = 'initial' | 'conversation' | 'one-shot';
 
 export const UserRole = Symbol('user');
 export const AssistantRole = Symbol('assistant');
@@ -10,6 +13,17 @@ export type Message = { role: Role; content: string };
 
 function isRole(role: string | Role): role is Role {
   return UserRole === role || AssistantRole === role || SystemRole === role;
+}
+
+function getDestinationPath(destination: Destination): string {
+  switch (destination) {
+    case 'initial':
+      return initialMessagesPath;
+    case 'conversation':
+      return conversationPath;
+    case 'one-shot':
+      return oneShotConversationPath;
+  }
 }
 
 function readFile(path: string): string | undefined {
@@ -62,34 +76,33 @@ function parseMessages(fileContent = ''): Message[] {
 }
 
 export class ConversationPersistance {
-  reset(affectInitialMessages: boolean) {
-    try {
-      if (affectInitialMessages) {
-        Deno.removeSync(initialMessagesPath);
+  reset(destinations: Destination[]) {
+    destinations.forEach((destination) => {
+      try {
+        Deno.removeSync(getDestinationPath(destination));
+      } catch {
+        // ignore
       }
-      Deno.removeSync(conversationPath);
-    } catch {
-      // ignore
-    }
+    });
   }
 
-  append({ role, content, affectInitialMessages }: { role: Role; content: string; affectInitialMessages: boolean }) {
-    this.appendPartial({ roleOrChunk: role, affectInitialMessages });
-    this.appendPartial({ roleOrChunk: `${content}\n\n`, affectInitialMessages });
+  append({ role, content, destination }: { role: Role; content: string; destination: Destination }) {
+    this.appendPartial({ roleOrChunk: role, destination });
+    this.appendPartial({ roleOrChunk: `${content}\n\n`, destination });
   }
 
   appendPartial(
-    { roleOrChunk, affectInitialMessages }: { roleOrChunk: Role | string; affectInitialMessages: boolean },
+    { roleOrChunk, destination }: { roleOrChunk: Role | string; destination: Destination },
   ) {
     if (isRole(roleOrChunk)) {
       Deno.writeTextFileSync(
-        affectInitialMessages ? initialMessagesPath : conversationPath,
+        getDestinationPath(destination),
         `# ${roleOrChunk.description}:\n`,
         { append: true },
       );
     } else {
       Deno.writeTextFileSync(
-        affectInitialMessages ? initialMessagesPath : conversationPath,
+        getDestinationPath(destination),
         roleOrChunk,
         { append: true },
       );
