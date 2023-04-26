@@ -20,10 +20,12 @@ Options:
   --multiline, -m         Enable multiline input.
   --read, -r [file(s)]    Read file(s) and use their content in the prompt.
   --initial, -i           Add to or reset the initial messages.
-  --one-shot, -o          Prompt without persisted conversation, do not save the result.
+  --one-shot, -o          Prompt without loading the persisted conversation.
+                          The result is saved into a separate file.
                           Uses initial messages if present.
+                          See Files section below.
   --copy, -c              Copy the response to the clipboard.
-  --reset, -e             Reset the conversation.
+  --reset, -e             Reset the conversation. See Files section below.
   --help, -h              Display this help message and exit.
 
 Input:
@@ -37,6 +39,14 @@ When no prompt is provided, the user will be prompted to enter it over standard 
 When --read or --multiline option is used, the prompt has to be provided over standard input.
 
 When --reset option is used, the prompt is ignored completely. It only resets the conversation.
+
+Files:
+- .cli-gpt.initial.md: This file contains initial messages set using the --initial flag.
+  These messages guide the behavior of the chatbot when the conversation starts.
+- .cli-gpt.conversation.md: This file contains the actual conversation history
+  between the user and the chatbot, including questions and responses.
+- .cli-gpt.conversation.one-shot.md: This file contains one-shot conversation history
+  for convenience.
 
 Examples:
   ${binName} "What is OpenAI?"

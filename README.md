@@ -63,12 +63,13 @@ Explore more options by using `cli-gpt --help`.
 
 ## Conversation Files
 
-`cli-gpt` stores the conversation history in two files within the directory where you use the CLI tool:
+`cli-gpt` stores the conversation history in files within the directory where you use the CLI tool:
 
 - `.cli-gpt.initial.md`: This file contains initial messages set using the `--initial` flag. These messages guide the behavior of the chatbot when the conversation starts.
 - `.cli-gpt.conversation.md`: This file contains the actual conversation history between the user and the chatbot, including questions and responses.
+- `.cli-gpt.conversation.one-shot.md`: This file contains one-shot conversation history for convenience.
 
-These files are plain text files in a Markdown format, which makes it easy to read and analyze the content. If you want to access specific parts of the conversation or perform further analysis, you can refer to these files directly. Additionally, you can reset both files using the `--reset` flag if you wish to start a fresh conversation. Remember to exclude these files from version control to avoid accidentally committing confidential or sensitive information.
+These files are plain text files in a Markdown format, which makes it easy to read and analyze the content. If you want to access specific parts of the conversation or perform further analysis, you can refer to these files directly. Additionally, you can reset the files using the `--reset` flag if you wish to start a fresh conversation. Remember to exclude these files from version control to avoid accidentally committing confidential or sensitive information.
 
 ## Usage Examples
 
