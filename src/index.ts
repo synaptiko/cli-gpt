@@ -64,9 +64,23 @@ if (flags.help) {
     }
 
     try {
-      for await (const chunk of chatCompletion.complete()) {
-        responseContent.push(chunk);
-        write(chunk);
+      const abortController = new AbortController();
+      const { signal: abortSignal } = abortController;
+
+      Deno.addSignalListener('SIGINT', () => {
+        abortController.abort();
+        console.log('Aborted.');
+      });
+
+      try {
+        for await (const chunk of chatCompletion.complete(abortSignal)) {
+          responseContent.push(chunk);
+          write(chunk);
+        }
+      } catch (error) {
+        if (error.message !== 'The signal has been aborted') {
+          console.log('Error:', error);
+        }
       }
       write('\n');
 

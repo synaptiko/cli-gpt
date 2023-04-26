@@ -25,7 +25,7 @@ export class ChatCompletion {
     this.messages = messages;
   }
 
-  async *complete(): AsyncGenerator<string> {
+  async *complete(abortSignal: AbortSignal): AsyncGenerator<string> {
     const { config: { api_key, ...config } } = this;
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -38,6 +38,7 @@ export class ChatCompletion {
         messages: normalizeMessages(this.messages),
         stream: true,
       }),
+      signal: abortSignal,
     });
     const decoder = new TextDecoder();
 
