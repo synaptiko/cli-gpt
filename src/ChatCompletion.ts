@@ -31,7 +31,7 @@ export class ChatCompletion {
   }
 
   async *complete(abortSignal: AbortSignal): AsyncGenerator<string> {
-    const { config: { api_key, ...config } } = this;
+    const { config: { api_key, model: { id: model, ...modelConfig } } } = this;
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -39,7 +39,8 @@ export class ChatCompletion {
         'Authorization': `Bearer ${api_key}`,
       },
       body: JSON.stringify({
-        ...config,
+        model,
+        ...modelConfig,
         messages: normalizeMessages(this.messages),
         stream: true,
       }),
