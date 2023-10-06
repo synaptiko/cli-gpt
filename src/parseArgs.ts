@@ -1,8 +1,8 @@
-import { AssistantRole, Role, SystemRole, UserRole } from './ConversationPersistance.ts';
+import { AssistantCallingFunctionRole, AssistantRole, FunctionResultRole, Role, SystemRole, UserRole } from './ConversationPersistance.ts';
 
 export type Params = {
   flags: Flags;
-  role: Role;
+  role: Exclude<Role, typeof AssistantCallingFunctionRole | typeof FunctionResultRole>;
   readFiles: string[] | undefined;
   prompt: string | undefined;
 };
@@ -19,7 +19,7 @@ export type Flags = {
 export function parseArgs(): Params {
   const args = [...Deno.args];
   let argsRead = false;
-  let role: Role | undefined;
+  let role: Params['role'] | undefined;
   const params: Omit<Params, 'role'> = {
     readFiles: undefined,
     prompt: undefined,

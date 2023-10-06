@@ -6,13 +6,33 @@ export type Destination = 'initial' | 'conversation' | 'one-shot';
 
 export const UserRole = Symbol('user');
 export const AssistantRole = Symbol('assistant');
+export const AssistantCallingFunctionRole = Symbol('assistant calling function');
 export const SystemRole = Symbol('system');
+export const FunctionResultRole = Symbol('function result');
 
-export type Role = typeof UserRole | typeof AssistantRole | typeof SystemRole;
-export type Message = { role: Role; content: string };
+export type Role = typeof UserRole | typeof AssistantRole | typeof SystemRole | typeof FunctionResultRole | typeof AssistantCallingFunctionRole;
+export type Message = {
+  role: typeof UserRole | typeof AssistantRole | typeof SystemRole;
+  content: string;
+} | {
+  role: typeof AssistantCallingFunctionRole;
+  name: string;
+  arguments: string;
+} | {
+  role: typeof FunctionResultRole;
+  name: string;
+  content: string;
+};
+
+/************************************************************************
+ * TODO for function calling:
+ * - add support for function calling to ConversationPersistance
+ * - improve logic in index.ts regarding responses with function calls
+ * - figure out how to make external commands being used as function calls (base of plugin system)
+ */
 
 function isRole(role: string | Role): role is Role {
-  return UserRole === role || AssistantRole === role || SystemRole === role;
+  return UserRole === role || AssistantRole === role || SystemRole === role || FunctionResultRole === role || AssistantCallingFunctionRole === role;
 }
 
 function getDestinationPath(destination: Destination): string {
@@ -39,6 +59,22 @@ function parseMessages(fileContent = ''): Message[] {
   let role: Role | undefined;
   let content: string[] = [];
 
+  function pushMessage() {
+    if (role === undefined || content.length === 0) {
+      return;
+    }
+
+    if (role === UserRole || role === SystemRole || role === AssistantRole) {
+      messages.push({ role, content: content.join('\n') });
+    } else if (role === AssistantCallingFunctionRole) {
+      messages.push({ role, name: content[0], arguments: content.slice(1).join('\n') });
+    } else if (role === FunctionResultRole) {
+      messages.push({ role, name: content[0], content: content.slice(1).join('\n') });
+    }
+
+    content = [];
+  }
+
   fileContent.split('\n').forEach((line) => {
     if (line !== '') {
       let newRole: Role | undefined;
@@ -53,14 +89,17 @@ function parseMessages(fileContent = ''): Message[] {
         case '# user:':
           newRole = UserRole;
           break;
-      }
-
-      if (newRole !== undefined && role !== undefined && content.length > 0) {
-        messages.push({ role, content: content.join('\n') });
-        content = [];
+        case '# assistant calling function:':
+          newRole = AssistantCallingFunctionRole;
+          break;
+        case '# function result:':
+          newRole = FunctionResultRole;
+          break;
       }
 
       if (newRole !== undefined) {
+        pushMessage();
+
         role = newRole;
       } else {
         content.push(line);
@@ -68,9 +107,7 @@ function parseMessages(fileContent = ''): Message[] {
     }
   });
 
-  if (role !== undefined && content.length > 0) {
-    messages.push({ role, content: content.join('\n') });
-  }
+  pushMessage();
 
   return messages;
 }
